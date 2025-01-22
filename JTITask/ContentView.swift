@@ -2,23 +2,19 @@
 //  ContentView.swift
 //  JTITask
 //
-//  Created by Buket Bayhan on 22.01.2025.
+//  Created by Berk Sarikaya on 22.01.2025.
 //
 
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        MainView()
     }
 }
 
-#Preview {
-    ContentView()
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }
