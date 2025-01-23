@@ -35,4 +35,14 @@ class AuthenticationManager: ObservableObject {
         isAdmin = false
         currentUser = nil
     }
+    
+    func register(email: String, password: String, fullName: String) -> Bool {
+        // Gerçek uygulamada burada API çağrısı yapılır
+        // Şimdilik sadece admin hesabı ile çakışmıyorsa başarılı sayalım
+        if email.lowercased() != adminCredentials.email.lowercased() {
+            // Kayıt başarılı
+            return true
+        }
+        return false
+    }
 } 

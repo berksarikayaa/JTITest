@@ -8,6 +8,7 @@ struct ProductDetailView: View {
     @EnvironmentObject private var localizationManager: LocalizationManager
     @Environment(\.colorScheme) var colorScheme
     @State private var showFullScreenImage = false
+    @State private var showAddedToCartAlert = false
     
     var body: some View {
         ScrollView {
@@ -94,11 +95,18 @@ struct ProductDetailView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
-            AddToCartButton(viewModel: viewModel, product: product)
+            AddToCartButton(viewModel: viewModel, product: product) {
+                showAddedToCartAlert = true
+            }
         }
         .background(Color(colorScheme == .dark ? .black : .white).ignoresSafeArea())
         .fullScreenCover(isPresented: $showFullScreenImage) {
             FullScreenImageView(imageName: product.imageName)
+        }
+        .alert("Sepete Eklendi", isPresented: $showAddedToCartAlert) {
+            Button("Tamam", role: .cancel) { }
+        } message: {
+            Text("\(product.name) sepete eklendi.")
         }
     }
 }
@@ -185,6 +193,7 @@ struct AddToCartButton: View {
     @ObservedObject var viewModel: ProductDetailViewModel
     @EnvironmentObject private var localizationManager: LocalizationManager
     let product: Product
+    var onAdd: (() -> Void)?
     
     var body: some View {
         VStack {
@@ -196,6 +205,7 @@ struct AddToCartButton: View {
                 
                 Button {
                     viewModel.addToCart(product)
+                    onAdd?()
                 } label: {
                     Text(localizationManager.strings.addToCart)
                         .font(.headline)

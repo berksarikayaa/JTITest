@@ -6,6 +6,7 @@ struct ProfileView: View {
     @State private var password = ""
     @State private var showAddProduct = false
     @State private var showLoginError = false
+    @State private var showRegister = false
     
     var body: some View {
         NavigationView {
@@ -55,6 +56,11 @@ struct ProfileView: View {
                         }
                     }
                     .buttonStyle(.borderedProminent)
+                    
+                    Button("Hesap Oluştur") {
+                        showRegister = true
+                    }
+                    .foregroundColor(.blue)
                 }
                 .padding()
                 .navigationTitle("Giriş Yap")
@@ -62,6 +68,9 @@ struct ProfileView: View {
                     Button("Tamam", role: .cancel) { }
                 } message: {
                     Text("E-posta veya şifre hatalı.")
+                }
+                .sheet(isPresented: $showRegister) {
+                    RegisterView()
                 }
             }
         }

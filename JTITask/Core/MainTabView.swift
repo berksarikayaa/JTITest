@@ -4,6 +4,7 @@ struct MainView: View {
     @StateObject private var cartManager = CartManager.shared
     @StateObject private var localizationManager = LocalizationManager.shared
     @State private var showMenu = false
+    @State private var selectedTab = 0
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
@@ -13,30 +14,43 @@ struct MainView: View {
                     .ignoresSafeArea()
                 
                 // Ana içerik
-                HomeView()
-                    .navigationTitle(showMenu ? "" : localizationManager.strings.home)
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            if !showMenu {
-                                Button {
-                                    withAnimation(.spring()) {
-                                        showMenu.toggle()
-                                    }
-                                } label: {
-                                    Image(systemName: "line.horizontal.3")
-                                        .font(.title3)
-                                        .foregroundColor(.primary)
+                Group {
+                    switch selectedTab {
+                    case 0:
+                        HomeView()
+                    case 1:
+                        ProfileView()
+                    case 2:
+                        ProductListView()
+                    case 3:
+                        CartView()
+                    default:
+                        HomeView()
+                    }
+                }
+                .navigationTitle(showMenu ? "" : getTitle())
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        if !showMenu {
+                            Button {
+                                withAnimation(.spring()) {
+                                    showMenu.toggle()
                                 }
+                            } label: {
+                                Image(systemName: "line.horizontal.3")
+                                    .font(.title3)
+                                    .foregroundColor(.primary)
                             }
                         }
-                        
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            CartButton()
-                        }
                     }
-                    .offset(x: showMenu ? UIScreen.main.bounds.width * 0.6 : 0)
-                    .disabled(showMenu)
+                    
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        CartButton()
+                    }
+                }
+                .offset(x: showMenu ? UIScreen.main.bounds.width * 0.6 : 0)
+                .disabled(showMenu)
                 
                 // Karartma efekti
                 if showMenu {
@@ -52,7 +66,7 @@ struct MainView: View {
                 
                 // Hamburger Menü
                 if showMenu {
-                    MenuContent(showMenu: $showMenu)
+                    MenuContent(showMenu: $showMenu, selectedTab: $selectedTab)
                         .frame(width: UIScreen.main.bounds.width * 0.6)
                         .transition(.move(edge: .leading))
                         .zIndex(2)
@@ -63,25 +77,39 @@ struct MainView: View {
         .environmentObject(cartManager)
         .environmentObject(localizationManager)
     }
+    
+    private func getTitle() -> String {
+        switch selectedTab {
+        case 0:
+            return localizationManager.strings.home
+        case 1:
+            return localizationManager.strings.profile
+        case 2:
+            return localizationManager.strings.products
+        case 3:
+            return localizationManager.strings.cart
+        default:
+            return localizationManager.strings.home
+        }
+    }
 }
 
 struct MenuContent: View {
     @Binding var showMenu: Bool
+    @Binding var selectedTab: Int
     @Environment(\.colorScheme) var colorScheme
     @StateObject private var localizationManager = LocalizationManager.shared
     
     var safeAreaInsets: Double {
-        // iOS 15+ için güvenli kullanım
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let window = windowScene.windows.first {
             return Double(window.safeAreaInsets.top)
         }
-        return 47 // Default safe area height
+        return 47
     }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Status bar için boşluk
             Color.clear
                 .frame(height: safeAreaInsets)
             
@@ -108,73 +136,75 @@ struct MenuContent: View {
             
             VStack(alignment: .leading, spacing: 20) {
                 Group {
-                    MenuLink(title: localizationManager.strings.profile, icon: "person.circle.fill", destination: AnyView(ProfileView()), showMenu: $showMenu)
-                    MenuLink(title: localizationManager.strings.home, icon: "house.fill", destination: AnyView(HomeView()), showMenu: $showMenu)
-                    MenuLink(title: localizationManager.strings.products, icon: "bag.fill", destination: AnyView(ProductListView()), showMenu: $showMenu)
-                    MenuLink(title: localizationManager.strings.cart, icon: "cart.fill", destination: AnyView(CartView()), showMenu: $showMenu)
+                    Button {
+                        selectedTab = 1
+                        withAnimation(.spring()) {
+                            showMenu = false
+                        }
+                    } label: {
+                        MenuRow(title: localizationManager.strings.profile, icon: "person.circle.fill")
+                    }
+                    
+                    Button {
+                        selectedTab = 0
+                        withAnimation(.spring()) {
+                            showMenu = false
+                        }
+                    } label: {
+                        MenuRow(title: localizationManager.strings.home, icon: "house.fill")
+                    }
+                    
+                    Button {
+                        selectedTab = 2
+                        withAnimation(.spring()) {
+                            showMenu = false
+                        }
+                    } label: {
+                        MenuRow(title: localizationManager.strings.products, icon: "bag.fill")
+                    }
+                    
+                    Button {
+                        selectedTab = 3
+                        withAnimation(.spring()) {
+                            showMenu = false
+                        }
+                    } label: {
+                        MenuRow(title: localizationManager.strings.cart, icon: "cart.fill")
+                    }
                 }
-                .frame(height: 44)
+                .buttonStyle(PlainButtonStyle())
                 
                 Divider()
                     .padding(.vertical, 10)
                 
+                // Dil seçimi bölümü
                 VStack(alignment: .leading, spacing: 15) {
                     Text(localizationManager.strings.languageSelection)
                         .font(.headline)
                     
-                    Button {
-                        withAnimation {
-                            localizationManager.currentLanguage = .turkish
-                            showMenu = false // Menüyü kapat
-                        }
-                    } label: {
-                        HStack {
-                            Text("🇹🇷 Türkçe")
-                                .font(.body)
-                            Spacer()
-                            if localizationManager.currentLanguage == .turkish {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
+                    ForEach([
+                        (flag: "🇹🇷", name: "Türkçe", language: Language.turkish),
+                        (flag: "🇬🇧", name: "English", language: Language.english),
+                        (flag: "🇸🇪", name: "Svenska", language: Language.swedish)
+                    ], id: \.language) { item in
+                        Button {
+                            withAnimation {
+                                localizationManager.currentLanguage = item.language
+                                showMenu = false
+                            }
+                        } label: {
+                            HStack {
+                                Text("\(item.flag) \(item.name)")
+                                    .font(.body)
+                                Spacer()
+                                if localizationManager.currentLanguage == item.language {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.blue)
+                                }
                             }
                         }
+                        .buttonStyle(PlainButtonStyle())
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    Button {
-                        withAnimation {
-                            localizationManager.currentLanguage = .english
-                            showMenu = false // Menüyü kapat
-                        }
-                    } label: {
-                        HStack {
-                            Text("🇬🇧 English")
-                                .font(.body)
-                            Spacer()
-                            if localizationManager.currentLanguage == .english {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    Button {
-                        withAnimation {
-                            localizationManager.currentLanguage = .swedish
-                            showMenu = false // Menüyü kapat
-                        }
-                    } label: {
-                        HStack {
-                            Text("🇸🇪 Svenska")
-                                .font(.body)
-                            Spacer()
-                            if localizationManager.currentLanguage == .swedish {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                    }
-                    .buttonStyle(PlainButtonStyle())
                 }
                 .foregroundColor(.primary)
                 .padding(.horizontal)
@@ -190,39 +220,23 @@ struct MenuContent: View {
     }
 }
 
-struct MenuLink: View {
+struct MenuRow: View {
     let title: String
     let icon: String
-    let destination: AnyView
-    @Binding var showMenu: Bool
     
     var body: some View {
-        NavigationLink {
-            destination
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        CartButton()
-                    }
-                }
-        } label: {
-            HStack(spacing: 16) {
-                Image(systemName: icon)
-                    .font(.title3)
-                    .frame(width: 24, height: 24) // Sabit boyut
-                    .foregroundColor(.primary)
-                
-                Text(title)
-                    .font(.body)
-                
-                Spacer()
-            }
+        HStack(spacing: 16) {
+            Image(systemName: icon)
+                .font(.title3)
+                .frame(width: 24, height: 24)
+                .foregroundColor(.primary)
+            
+            Text(title)
+                .font(.body)
+            
+            Spacer()
         }
-        .buttonStyle(PlainButtonStyle())
-        .simultaneousGesture(TapGesture().onEnded {
-            withAnimation(.spring()) {
-                showMenu = false
-            }
-        })
+        .contentShape(Rectangle())
     }
 }
 
