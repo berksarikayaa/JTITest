@@ -3,7 +3,7 @@ struct Product: Identifiable, Codable {
     let name: String
     let description: String
     let price: Double
-    let imageURL: String
+    let imageName: String
     let category: ProductCategory
     let nicotineStrength: String
     let quantity: Int

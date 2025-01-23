@@ -6,7 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		48E188692D42244B008DE27D /* ProductModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 48E188602D421F3C008DE27D /* ProductModel.xcdatamodeld */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		48E188612D421F3C008DE27D /* ProductModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ProductModel.xcdatamodel; sourceTree = "<group>"; };
 		48F412C52D4182B8003D4908 /* JTITask.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JTITask.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -32,6 +37,7 @@
 		48F412BC2D4182B8003D4908 = {
 			isa = PBXGroup;
 			children = (
+				48E188602D421F3C008DE27D /* ProductModel.xcdatamodeld */,
 				48F412C72D4182B8003D4908 /* JTITask */,
 				48F412C62D4182B8003D4908 /* Products */,
 			);
@@ -119,6 +125,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				48E188692D42244B008DE27D /* ProductModel.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -324,6 +331,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		48E188602D421F3C008DE27D /* ProductModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				48E188612D421F3C008DE27D /* ProductModel.xcdatamodel */,
+			);
+			currentVersion = 48E188612D421F3C008DE27D /* ProductModel.xcdatamodel */;
+			name = ProductModel.xcdatamodeld;
+			path = JTITask/CoreData/ProductModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 48F412BD2D4182B8003D4908 /* Project object */;
 }

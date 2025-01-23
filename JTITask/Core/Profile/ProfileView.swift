@@ -1,39 +1,68 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @State private var isLoggedIn = false
+    @StateObject private var authManager = AuthenticationManager.shared
+    @State private var email = ""
+    @State private var password = ""
+    @State private var showAddProduct = false
+    @State private var showLoginError = false
     
     var body: some View {
         NavigationView {
-            if isLoggedIn {
+            if authManager.isAuthenticated {
                 List {
-                    Section {
-                        ProfileInfoRow(title: "Ad Soyad", value: "Kullanıcı Adı")
-                        ProfileInfoRow(title: "E-posta", value: "kullanici@email.com")
+                    if authManager.isAdmin {
+                        Section("Admin Paneli") {
+                            NavigationLink {
+                                ProductListAdminView()
+                            } label: {
+                                Label("Ürün Yönetimi", systemImage: "cube.box")
+                            }
+                        }
                     }
                     
                     Section {
-                        NavigationLink("Siparişlerim") {
-                            Text("Siparişler")
-                        }
-                        NavigationLink("Adreslerim") {
-                            Text("Adresler")
-                        }
-                        NavigationLink("Ayarlar") {
-                            Text("Ayarlar")
-                        }
+                        ProfileInfoRow(title: "E-posta", value: authManager.currentUser?.email ?? "")
                     }
                     
                     Section {
                         Button("Çıkış Yap") {
-                            isLoggedIn = false
+                            authManager.logout()
                         }
                         .foregroundColor(.red)
                     }
                 }
                 .navigationTitle("Profilim")
             } else {
-                LoginView(isLoggedIn: $isLoggedIn)
+                VStack(spacing: 20) {
+                    TextField("E-posta", text: $email)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .autocapitalization(.none)
+                        .keyboardType(.emailAddress)
+                    
+                    SecureField("Şifre", text: $password)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    
+                    Button("Giriş Yap") {
+                        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+                        let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
+                        
+                        if authManager.login(email: trimmedEmail, password: trimmedPassword) {
+                            email = ""
+                            password = ""
+                        } else {
+                            showLoginError = true
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .padding()
+                .navigationTitle("Giriş Yap")
+                .alert("Hata", isPresented: $showLoginError) {
+                    Button("Tamam", role: .cancel) { }
+                } message: {
+                    Text("E-posta veya şifre hatalı.")
+                }
             }
         }
     }
@@ -50,28 +79,5 @@ struct ProfileInfoRow: View {
             Spacer()
             Text(value)
         }
-    }
-}
-
-struct LoginView: View {
-    @Binding var isLoggedIn: Bool
-    @State private var email = ""
-    @State private var password = ""
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            TextField("E-posta", text: $email)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-            
-            SecureField("Şifre", text: $password)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-            
-            Button("Giriş Yap") {
-                isLoggedIn = true
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .padding()
-        .navigationTitle("Giriş Yap")
     }
 } 

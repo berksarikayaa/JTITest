@@ -70,11 +70,20 @@ struct MenuContent: View {
     @Environment(\.colorScheme) var colorScheme
     @StateObject private var localizationManager = LocalizationManager.shared
     
+    var safeAreaInsets: Double {
+        // iOS 15+ için güvenli kullanım
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+            return Double(window.safeAreaInsets.top)
+        }
+        return 47 // Default safe area height
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Status bar için boşluk
             Color.clear
-                .frame(height: UIApplication.shared.windows.first?.safeAreaInsets.top)
+                .frame(height: safeAreaInsets)
             
             HStack {
                 Text("Menü")
@@ -113,23 +122,59 @@ struct MenuContent: View {
                     Text(localizationManager.strings.languageSelection)
                         .font(.headline)
                     
-                    Group {
-                        LanguageButton(title: "Türkçe", flag: "🇹🇷", 
-                            isSelected: localizationManager.currentLanguage == .turkish) {
+                    Button {
+                        withAnimation {
                             localizationManager.currentLanguage = .turkish
+                            showMenu = false // Menüyü kapat
                         }
-                        
-                        LanguageButton(title: "English", flag: "🇬🇧", 
-                            isSelected: localizationManager.currentLanguage == .english) {
-                            localizationManager.currentLanguage = .english
-                        }
-                        
-                        LanguageButton(title: "Svenska", flag: "🇸🇪", 
-                            isSelected: localizationManager.currentLanguage == .swedish) {
-                            localizationManager.currentLanguage = .swedish
+                    } label: {
+                        HStack {
+                            Text("🇹🇷 Türkçe")
+                                .font(.body)
+                            Spacer()
+                            if localizationManager.currentLanguage == .turkish {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
                         }
                     }
-                    .frame(height: 44)
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    Button {
+                        withAnimation {
+                            localizationManager.currentLanguage = .english
+                            showMenu = false // Menüyü kapat
+                        }
+                    } label: {
+                        HStack {
+                            Text("🇬🇧 English")
+                                .font(.body)
+                            Spacer()
+                            if localizationManager.currentLanguage == .english {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    Button {
+                        withAnimation {
+                            localizationManager.currentLanguage = .swedish
+                            showMenu = false // Menüyü kapat
+                        }
+                    } label: {
+                        HStack {
+                            Text("🇸🇪 Svenska")
+                                .font(.body)
+                            Spacer()
+                            if localizationManager.currentLanguage == .swedish {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
                 .foregroundColor(.primary)
                 .padding(.horizontal)
@@ -178,34 +223,6 @@ struct MenuLink: View {
                 showMenu = false
             }
         })
-    }
-}
-
-struct LanguageButton: View {
-    let title: String
-    let flag: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                Text(flag)
-                    .font(.title2)
-                    .frame(width: 24, height: 24) // Sabit boyut
-                
-                Text(title)
-                    .font(.body)
-                
-                Spacer()
-                
-                if isSelected {
-                    Image(systemName: "checkmark")
-                        .foregroundColor(.blue)
-                }
-            }
-        }
-        .foregroundColor(.primary)
     }
 }
 
