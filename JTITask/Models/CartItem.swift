@@ -1,12 +1,8 @@
 import Foundation
 
-class CartItem: Identifiable {
+// CartItem modelini tek bir yerde tanımlıyoruz
+struct CartItem: Identifiable {
     let id = UUID()
     let product: Product
     var quantity: Int
-    
-    init(product: Product, quantity: Int) {
-        self.product = product
-        self.quantity = quantity
-    }
 } 

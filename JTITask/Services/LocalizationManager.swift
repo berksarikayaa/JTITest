@@ -3,14 +3,18 @@ import Foundation
 class LocalizationManager: ObservableObject {
     static let shared = LocalizationManager()
     
-    @Published var currentLanguage: Language {
-        didSet {
-            UserDefaults.standard.set(currentLanguage.rawValue, forKey: "selectedLanguage")
-            updateLocalizedStrings()
+    @Published var currentLanguage: Language = .turkish
+    
+    var strings: any LocalizedStrings {
+        switch currentLanguage {
+        case .turkish:
+            return TurkishStrings()
+        case .english:
+            return EnglishStrings()
+        case .swedish:
+            return SwedishStrings()
         }
     }
-    
-    @Published var strings: LocalizedStrings = .turkish
     
     var currencySymbol: String {
         switch currentLanguage {
@@ -32,23 +36,6 @@ class LocalizationManager: ObservableObject {
         let convertedPrice = price * currencyRate
         return "\(currencySymbol)\(String(format: "%.2f", convertedPrice))"
     }
-    
-    private init() {
-        let savedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage") ?? "tr"
-        currentLanguage = Language(rawValue: savedLanguage) ?? .turkish
-        updateLocalizedStrings()
-    }
-    
-    private func updateLocalizedStrings() {
-        switch currentLanguage {
-        case .turkish:
-            strings = .turkish
-        case .english:
-            strings = .english
-        case .swedish:
-            strings = .swedish
-        }
-    }
 }
 
 enum Language: String {
@@ -57,62 +44,62 @@ enum Language: String {
     case swedish = "sv"
 }
 
-struct LocalizedStrings {
-    var menu: String
-    var profile: String
-    var home: String
-    var products: String
-    var cart: String
-    var languageSelection: String
-    var checkout: String
-    var emptyCart: String
-    var startShopping: String
-    var total: String
-    var addToCart: String
-    var quantity: String
-    
-    static let turkish = LocalizedStrings(
-        menu: "Menü",
-        profile: "Profil",
-        home: "Ana Sayfa",
-        products: "Ürünler",
-        cart: "Sepet",
-        languageSelection: "Dil Seçimi",
-        checkout: "Ödemeye Geç",
-        emptyCart: "Sepetiniz boş",
-        startShopping: "Ürün eklemek için alışverişe başlayın",
-        total: "Toplam",
-        addToCart: "Sepete Ekle",
-        quantity: "Adet"
-    )
-    
-    static let english = LocalizedStrings(
-        menu: "Menu",
-        profile: "Profile",
-        home: "Home",
-        products: "Products",
-        cart: "Cart",
-        languageSelection: "Language Selection",
-        checkout: "Checkout",
-        emptyCart: "Your cart is empty",
-        startShopping: "Start shopping to add products",
-        total: "Total",
-        addToCart: "Add to Cart",
-        quantity: "Quantity"
-    )
-    
-    static let swedish = LocalizedStrings(
-        menu: "Meny",
-        profile: "Profil",
-        home: "Hem",
-        products: "Produkter",
-        cart: "Vagn",
-        languageSelection: "Välj språk",
-        checkout: "Till kassan",
-        emptyCart: "Din vagn är tom",
-        startShopping: "Börja handla för att lägga till produkter",
-        total: "Totalt",
-        addToCart: "Lägg i varukorgen",
-        quantity: "Antal"
-    )
+protocol LocalizedStrings {
+    var menu: String { get }
+    var profile: String { get }
+    var home: String { get }
+    var products: String { get }
+    var cart: String { get }
+    var languageSelection: String { get }
+    var checkout: String { get }
+    var emptyCart: String { get }
+    var startShopping: String { get }
+    var total: String { get }
+    var addToCart: String { get }
+    var quantity: String { get }
+}
+
+struct TurkishStrings: LocalizedStrings {
+    let menu = "Menü"
+    let profile = "Profil"
+    let home = "Ana Sayfa"
+    let products = "Ürünler"
+    let cart = "Sepet"
+    let languageSelection = "Dil Seçimi"
+    let checkout = "Ödemeye Geç"
+    let emptyCart = "Sepetiniz boş"
+    let startShopping = "Ürün eklemek için alışverişe başlayın"
+    let total = "Toplam"
+    let addToCart = "Sepete Ekle"
+    let quantity = "Adet"
+}
+
+struct EnglishStrings: LocalizedStrings {
+    let menu = "Menu"
+    let profile = "Profile"
+    let home = "Home"
+    let products = "Products"
+    let cart = "Cart"
+    let languageSelection = "Language Selection"
+    let checkout = "Checkout"
+    let emptyCart = "Your cart is empty"
+    let startShopping = "Start shopping to add products"
+    let total = "Total"
+    let addToCart = "Add to Cart"
+    let quantity = "Quantity"
+}
+
+struct SwedishStrings: LocalizedStrings {
+    let menu = "Meny"
+    let profile = "Profil"
+    let home = "Hem"
+    let products = "Produkter"
+    let cart = "Vagn"
+    let languageSelection = "Välj språk"
+    let checkout = "Till kassan"
+    let emptyCart = "Din vagn är tom"
+    let startShopping = "Börja handla för att lägga till produkter"
+    let total = "Totalt"
+    let addToCart = "Lägg i varukorgen"
+    let quantity = "Antal"
 } 

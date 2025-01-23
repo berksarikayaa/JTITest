@@ -66,25 +66,8 @@ struct HomeView: View {
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 2), spacing: 16) {
                             ForEach(searchText.isEmpty ? viewModel.filteredProducts : viewModel.filteredProducts, id: \.self) { product in
                                 NavigationLink {
-                                    if let name = product.value(forKey: "name") as? String,
-                                       let desc = product.value(forKey: "desc") as? String,
-                                       let price = product.value(forKey: "price") as? Double,
-                                       let nicotineStrength = product.value(forKey: "nicotineStrength") as? String,
-                                       let quantity = product.value(forKey: "quantity") as? Int16,
-                                       let category = product.value(forKey: "category") as? String,
-                                       let categoryEnum = ProductCategory(rawValue: category) {
-                                        let mappedProduct = Product(
-                                            id: product.value(forKey: "id") as? String ?? UUID().uuidString,
-                                            name: name,
-                                            description: desc,
-                                            price: price,
-                                            imageName: "", // Core Data'dan gelen ürünler için boş bırakıyoruz
-                                            category: categoryEnum,
-                                            nicotineStrength: nicotineStrength,
-                                            quantity: Int(quantity)
-                                        )
-                                        ProductDetailView(product: mappedProduct)
-                                    }
+                                    let product = Product(managedObject: product)
+                                    ProductDetailView(product: product)
                                 } label: {
                                     ProductCard(managedProduct: product)
                                 }

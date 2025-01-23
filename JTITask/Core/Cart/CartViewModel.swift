@@ -1,29 +1,35 @@
 import Foundation
+import SwiftUI
 
 class CartViewModel: ObservableObject {
     @Published var cartManager: CartManager
+    @Published var showCheckout = false
     
     init(cartManager: CartManager = .shared) {
         self.cartManager = cartManager
     }
     
-    var cartItems: [CartItem] {
-        cartManager.cartItems
+    var items: [CartItem] {
+        cartManager.items
     }
     
     var total: Double {
         cartManager.total
     }
     
-    func updateQuantity(for item: CartItem, increment: Bool) {
-        if increment {
-            cartManager.incrementQuantity(for: item)
-        } else {
-            cartManager.decrementQuantity(for: item)
-        }
+    func increaseQuantity(for item: CartItem) {
+        cartManager.increaseQuantity(for: item.product)
+    }
+    
+    func decreaseQuantity(for item: CartItem) {
+        cartManager.decreaseQuantity(for: item.product)
     }
     
     func removeItem(_ item: CartItem) {
-        cartManager.removeItem(item)
+        cartManager.removeFromCart(item.product)
+    }
+    
+    func clearCart() {
+        cartManager.clearCart()
     }
 }

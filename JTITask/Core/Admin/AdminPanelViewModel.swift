@@ -85,7 +85,11 @@ class AdminPanelViewModel: ObservableObject {
     }
     
     func saveProduct() {
-        guard let priceDouble = Double(price),
+        // Fiyatı nokta ile ayır ve boşlukları temizle
+        let formattedPrice = price.replacingOccurrences(of: ",", with: ".")
+                                 .trimmingCharacters(in: .whitespaces)
+        
+        guard let priceDouble = Double(formattedPrice),
               let quantityInt = Int(quantity) else {
             showError = true
             errorMessage = "Lütfen tüm alanları doğru formatta doldurun."

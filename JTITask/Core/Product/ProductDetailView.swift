@@ -12,15 +12,19 @@ struct ProductDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Ürün görseli
-                Image(product.imageName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(height: 300)
-                    .frame(maxWidth: .infinity)
-                    .onTapGesture {
-                        showFullScreenImage = true
-                    }
+                // Görsel için Core Data'dan gelen imageData'yı kullanalım
+                if let imageData = product.imageData,
+                   let uiImage = UIImage(data: imageData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxHeight: 300)
+                } else {
+                    Image(product.imageName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxHeight: 300)
+                }
                 
                 VStack(alignment: .leading, spacing: 16) {
                     // Ürün başlığı ve fiyat
@@ -30,7 +34,7 @@ struct ProductDetailView: View {
                                 .font(.title2.bold())
                             
                             Text(localizationManager.formatPrice(product.price))
-                                .font(.title3)
+                                .font(.title.bold())
                                 .foregroundColor(.blue)
                         }
                         
