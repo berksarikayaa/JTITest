@@ -22,19 +22,26 @@ struct MainView: View {
                 }
                 .tag(1)
             
+            FavoritesView()
+                .tabItem {
+                    Image(systemName: "star.fill")
+                    Text("Favoriler")
+                }
+                .tag(2)
+            
             ProfileView()
                 .tabItem {
                     Image(systemName: "person.fill")
                     Text(localizationManager.strings.profile)
                 }
-                .tag(2)
+                .tag(3)
             
             SettingsView()
                 .tabItem {
                     Image(systemName: "gear")
                     Text("Ayarlar")
                 }
-                .tag(3)
+                .tag(4)
         }
         .environmentObject(cartManager)
         .environmentObject(localizationManager)

@@ -2,7 +2,7 @@ import SwiftUI
 import AVKit
 
 struct ProductDetailView: View {
-    let product: Product
+    @State var product: Product
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = ProductDetailViewModel()
     @EnvironmentObject private var cartManager: CartManager
@@ -83,11 +83,11 @@ struct ProductDetailView: View {
                             Spacer()
                             
                             Button {
-                                viewModel.addToFavorites(product)
+                                viewModel.toggleFavorite(for: &product)
                             } label: {
-                                Image(systemName: viewModel.isFavorite ? "heart.fill" : "heart")
+                                Image(systemName: product.isFavorite ? "heart.fill" : "heart")
                                     .font(.title2)
-                                    .foregroundColor(viewModel.isFavorite ? .red : .gray)
+                                    .foregroundColor(product.isFavorite ? .red : .gray)
                                     .frame(width: 44, height: 44)
                                     .background(Color.gray.opacity(0.1))
                                     .clipShape(Circle())

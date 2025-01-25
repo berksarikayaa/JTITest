@@ -25,10 +25,12 @@ class ProductDetailViewModel: ObservableObject {
         generator.notificationOccurred(.success)
     }
     
-    func addToFavorites(_ product: Product) {
-        withAnimation(.spring()) {
-            isFavorite.toggle()
-        }
+    func toggleFavorite(for product: inout Product) {
+        product.isFavorite.toggle()
+        isFavorite = product.isFavorite
+        // Haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
     }
     
     private func loadSimilarProducts() {

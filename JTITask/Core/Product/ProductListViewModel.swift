@@ -1,12 +1,13 @@
 import Foundation
 import CoreData
+import SwiftUI
 
 class ProductListViewModel: ObservableObject {
     @Published var products: [NSManagedObject] = []
     @Published var filteredProducts: [NSManagedObject] = []
     @Published var isLoading = false
-    @Published var selectedCategory: ProductCategory?
-    @Published var searchText = ""
+    @Published var selectedCategory: ProductCategory? = nil
+    @Published var searchText: String = ""
     
     private let coreDataManager = CoreDataManager.shared
     
@@ -45,7 +46,13 @@ class ProductListViewModel: ObservableObject {
         }
     }
     
-    func searchProducts() {
-        filterProducts()
+    func searchProducts(query: String) {
+        // Arama mantığını burada uygulayın
+        // Örneğin, Core Data'dan ürünleri filtreleyebilirsiniz
+    }
+    
+    func filterProducts(by category: ProductCategory) {
+        selectedCategory = category
+        // Kategoriye göre filtreleme mantığını burada uygulayın
     }
 } 

@@ -13,6 +13,7 @@ struct Product: Identifiable, Hashable {
     let imageData: Data?
     var images360: [UIImage]? // 360 derece görüntüler için eklendi
     var videoURL: URL? // Video URL'i için eklendi
+    var isFavorite: Bool = false // Favori özelliği eklendi
     
     // Core Data'dan ürün oluştururken kullanılacak init
     init(managedObject: NSManagedObject) {

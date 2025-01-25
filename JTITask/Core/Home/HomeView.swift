@@ -21,83 +21,19 @@ struct HomeView: View {
                 AnimatedBackground()
                 
                 ScrollView {
-                    VStack {
-                        // Kış indirimi banner'ı
-                        Image("winter-banner")
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(height: 200)
-                            .clipped()
+                    VStack(spacing: 16) {
+                        // Banner bölümü
+                        bannerSection
                         
                         // Arama çubuğu
-                        SearchBar(text: $searchText)
-                            .onChange(of: searchText) { _, newValue in
-                                viewModel.searchProducts(query: newValue)
-                            }
-                            .padding(.vertical, 4)
+                        searchSection
                         
-                        ScrollView {
-                            VStack(spacing: 8) {
-                                // Nordic Spirit banner'ı
-                                Image("nordic-banner")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(height: 200)
-                                    .cornerRadius(12)
-                                    .padding(.horizontal)
-                                
-                                // Kategoriler
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Kategoriler")
-                                        .font(.title2.bold())
-                                        .padding(.horizontal)
-                                        .padding(.top, 4)
-                                    
-                                    ScrollView(.horizontal, showsIndicators: false) {
-                                        HStack(spacing: 15) {
-                                            CategoryCard(category: nil, isSelected: viewModel.selectedCategory == nil) {
-                                                viewModel.filterByCategory(nil)
-                                            }
-                                            
-                                            ForEach(ProductCategory.allCases, id: \.self) { category in
-                                                CategoryCard(
-                                                    category: category,
-                                                    isSelected: viewModel.selectedCategory == category
-                                                ) {
-                                                    viewModel.filterByCategory(category)
-                                                }
-                                            }
-                                        }
-                                        .padding(.horizontal)
-                                    }
-                                }
-                                
-                                // Öne çıkan ürünler
-                                VStack(alignment: .leading) {
-                                    Text("Öne Çıkan Ürünler")
-                                        .font(.title2.bold())
-                                        .padding(.horizontal)
-                                    
-                                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 2), spacing: 16) {
-                                        ForEach(searchText.isEmpty ? viewModel.filteredProducts : viewModel.filteredProducts, id: \.self) { managedProduct in
-                                            NavigationLink {
-                                                if let product = createProduct(from: managedProduct) {
-                                                    ProductDetailView(product: product)
-                                                }
-                                            } label: {
-                                                ProductCard(managedProduct: managedProduct)
-                                            }
-                                            .buttonStyle(PlainButtonStyle())
-                                        }
-                                    }
-                                    .padding(.horizontal)
-                                }
-                            }
-                        }
+                        // Ürün listesi
+                        productGridSection
                     }
                 }
             }
-            .ignoresSafeArea()
+            .navigationTitle("Ana Sayfa")
             .onAppear {
                 // Notification'ı dinle
                 NotificationCenter.default.addObserver(
@@ -113,6 +49,51 @@ struct HomeView: View {
         }
     }
     
+    // Banner bölümü
+    private var bannerSection: some View {
+        VStack {
+            Image("winter-banner")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(height: 200)
+                .clipped()
+            
+            Image("nordic-banner")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(height: 200)
+                .cornerRadius(12)
+                .padding(.horizontal)
+        }
+    }
+    
+    // Arama bölümü
+    private var searchSection: some View {
+        SearchBar(text: $searchText)
+            .onChange(of: searchText) { newValue in
+                viewModel.searchProducts(query: newValue)
+            }
+            .padding(.vertical, 4)
+    }
+    
+    // Ürün grid bölümü
+    private var productGridSection: some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 2), spacing: 16) {
+            ForEach(viewModel.filteredProducts, id: \.self) { managedProduct in
+                if let product = createProduct(from: managedProduct) {
+                    NavigationLink {
+                        ProductDetailView(product: product)
+                    } label: {
+                        ProductCard(product: product)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+        }
+        .padding(.horizontal)
+    }
+    
+    // Helper fonksiyon: NSManagedObject'ten Product oluşturma
     private func createProduct(from managedProduct: NSManagedObject) -> Product? {
         guard let name = managedProduct.value(forKey: "name") as? String,
               let desc = managedProduct.value(forKey: "desc") as? String,

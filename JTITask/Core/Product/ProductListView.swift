@@ -11,11 +11,11 @@ struct ProductListView: View {
             ZStack {
                 AnimatedBackground()
                 
-                VStack {
+                ScrollView {
                     // Arama çubuğu
                     SearchBar(text: $viewModel.searchText)
-                        .onChange(of: viewModel.searchText) { _, newValue in
-                            viewModel.searchProducts()
+                        .onChange(of: viewModel.searchText) { newValue in
+                            viewModel.searchProducts(query: newValue)
                         }
                     
                     // Kategori filtreleme
@@ -24,21 +24,19 @@ struct ProductListView: View {
                     }
                     
                     // Ürün listesi
-                    ScrollView {
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 2), spacing: 16) {
-                            ForEach(viewModel.filteredProducts, id: \.self) { managedProduct in
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 2), spacing: 16) {
+                        ForEach(viewModel.filteredProducts, id: \.self) { managedProduct in
+                            if let product = createProduct(from: managedProduct) {
                                 NavigationLink {
-                                    if let product = createProduct(from: managedProduct) {
-                                        ProductDetailView(product: product)
-                                    }
+                                    ProductDetailView(product: product)
                                 } label: {
-                                    ProductCard(managedProduct: managedProduct)
+                                    ProductCard(product: product)
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }
                         }
-                        .padding(.horizontal)
                     }
+                    .padding(.horizontal)
                 }
                 .navigationTitle(localizationManager.strings.products)
             }
