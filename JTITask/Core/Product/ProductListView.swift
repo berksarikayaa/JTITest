@@ -7,25 +7,42 @@ struct ProductListView: View {
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
-        VStack {
-            // Arama çubuğu
-            SearchBar(text: $viewModel.searchText)
-                .onChange(of: viewModel.searchText) { _, newValue in
-                    viewModel.searchProducts()
+        NavigationView {
+            ZStack {
+                AnimatedBackground()
+                
+                VStack {
+                    // Arama çubuğu
+                    SearchBar(text: $viewModel.searchText)
+                        .onChange(of: viewModel.searchText) { _, newValue in
+                            viewModel.searchProducts()
+                        }
+                    
+                    // Kategori filtreleme
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        categoryFilterView
+                    }
+                    
+                    // Ürün listesi
+                    ScrollView {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 2), spacing: 16) {
+                            ForEach(viewModel.filteredProducts, id: \.self) { managedProduct in
+                                NavigationLink {
+                                    if let product = createProduct(from: managedProduct) {
+                                        ProductDetailView(product: product)
+                                    }
+                                } label: {
+                                    ProductCard(managedProduct: managedProduct)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
                 }
-            
-            // Kategori filtreleme
-            ScrollView(.horizontal, showsIndicators: false) {
-                categoryFilterView
-            }
-            
-            // Ürün listesi
-            ScrollView {
-                productGridView
+                .navigationTitle(localizationManager.strings.products)
             }
         }
-        .navigationTitle(localizationManager.strings.products)
-        .background(Color(colorScheme == .dark ? .black : .white).ignoresSafeArea())
     }
     
     private var categoryFilterView: some View {
@@ -41,36 +58,30 @@ struct ProductListView: View {
         .padding(.horizontal)
     }
     
-    private var productGridView: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 2), spacing: 16) {
-            ForEach(viewModel.filteredProducts, id: \.self) { managedProduct in
-                NavigationLink {
-                    if let name = managedProduct.value(forKey: "name") as? String,
-                       let desc = managedProduct.value(forKey: "desc") as? String,
-                       let price = managedProduct.value(forKey: "price") as? Double,
-                       let nicotineStrength = managedProduct.value(forKey: "nicotineStrength") as? String,
-                       let quantity = managedProduct.value(forKey: "quantity") as? Int16,
-                       let category = managedProduct.value(forKey: "category") as? String,
-                       let categoryEnum = ProductCategory(rawValue: category) {
-                        let product = Product(
-                            id: managedProduct.value(forKey: "id") as? String ?? UUID().uuidString,
-                            name: name,
-                            description: desc,
-                            price: price,
-                            imageName: "", // Core Data'dan gelen ürünler için boş bırakıyoruz
-                            category: categoryEnum,
-                            nicotineStrength: nicotineStrength,
-                            quantity: Int(quantity)
-                        )
-                        ProductDetailView(product: product)
-                    }
-                } label: {
-                    ProductCard(managedProduct: managedProduct)
-                }
-                .buttonStyle(PlainButtonStyle())
-            }
+    // Helper fonksiyon: NSManagedObject'ten Product oluşturma
+    private func createProduct(from managedProduct: NSManagedObject) -> Product? {
+        guard let name = managedProduct.value(forKey: "name") as? String,
+              let desc = managedProduct.value(forKey: "desc") as? String,
+              let price = managedProduct.value(forKey: "price") as? Double,
+              let nicotineStrength = managedProduct.value(forKey: "nicotineStrength") as? String,
+              let quantity = managedProduct.value(forKey: "quantity") as? Int16,
+              let category = managedProduct.value(forKey: "category") as? String,
+              let imageData = managedProduct.value(forKey: "imageData") as? Data,
+              let categoryEnum = ProductCategory(rawValue: category) else {
+            return nil
         }
-        .padding(.horizontal)
+        
+        return Product(
+            id: managedProduct.value(forKey: "id") as? String ?? UUID().uuidString,
+            name: name,
+            description: desc,
+            price: price,
+            imageName: "",
+            category: categoryEnum,
+            nicotineStrength: nicotineStrength,
+            quantity: Int(quantity),
+            imageData: imageData
+        )
     }
 }
 

@@ -7,44 +7,51 @@ struct CartView: View {
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
-        NavigationView {
-            Group {
-                if cartManager.items.isEmpty {
-                    EmptyCartView()
-                } else {
-                    List {
-                        ForEach(cartManager.items) { item in
-                            CartItemView(item: item)
-                                .swipeActions(edge: .trailing) {
-                                    Button(role: .destructive) {
-                                        withAnimation {
-                                            cartManager.removeFromCart(item.product)
+        ZStack {
+            AnimatedBackground()
+            
+            NavigationView {
+                Group {
+                    if cartManager.items.isEmpty {
+                        EmptyCartView()
+                            .background(.clear)
+                    } else {
+                        List {
+                            ForEach(cartManager.items) { item in
+                                CartItemView(item: item)
+                                    .swipeActions(edge: .trailing) {
+                                        Button(role: .destructive) {
+                                            withAnimation {
+                                                cartManager.removeFromCart(item.product)
+                                            }
+                                        } label: {
+                                            Label("Sil", systemImage: "trash")
                                         }
-                                    } label: {
-                                        Label("Sil", systemImage: "trash")
                                     }
+                            }
+                            
+                            Section {
+                                HStack {
+                                    Text(localizationManager.strings.total)
+                                        .font(.headline)
+                                    Spacer()
+                                    Text(localizationManager.formatPrice(cartManager.total))
+                                        .font(.title3.bold())
+                                        .foregroundColor(.blue)
                                 }
-                        }
-                        
-                        Section {
-                            HStack {
-                                Text(localizationManager.strings.total)
-                                    .font(.headline)
-                                Spacer()
-                                Text(localizationManager.formatPrice(cartManager.total))
-                                    .font(.title3.bold())
-                                    .foregroundColor(.blue)
                             }
                         }
+                        .listStyle(InsetGroupedListStyle())
+                        .scrollContentBackground(.hidden)
                     }
                 }
-            }
-            .navigationTitle(localizationManager.strings.cart)
-            .toolbar {
-                if !cartManager.items.isEmpty {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(localizationManager.strings.checkout) {
-                            viewModel.showCheckout = true
+                .navigationTitle(localizationManager.strings.cart)
+                .toolbar {
+                    if !cartManager.items.isEmpty {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button(localizationManager.strings.checkout) {
+                                viewModel.showCheckout = true
+                            }
                         }
                     }
                 }
@@ -69,5 +76,6 @@ struct EmptyCartView: View {
                 .foregroundColor(.secondary)
         }
         .padding()
+        .background(.clear)
     }
 } 

@@ -1,6 +1,7 @@
 import CoreData
+import UIKit // UIImage için eklendi
 
-struct Product: Identifiable {
+struct Product: Identifiable, Hashable {
     let id: String
     let name: String
     let description: String
@@ -9,7 +10,9 @@ struct Product: Identifiable {
     let category: ProductCategory
     let nicotineStrength: String
     let quantity: Int
-    var imageData: Data?
+    let imageData: Data?
+    var images360: [UIImage]? // 360 derece görüntüler için eklendi
+    var videoURL: URL? // Video URL'i için eklendi
     
     // Core Data'dan ürün oluştururken kullanılacak init
     init(managedObject: NSManagedObject) {
@@ -22,12 +25,12 @@ struct Product: Identifiable {
         self.nicotineStrength = managedObject.value(forKey: "nicotineStrength") as? String ?? ""
         self.quantity = Int(managedObject.value(forKey: "quantity") as? Int16 ?? 0)
         self.imageData = managedObject.value(forKey: "imageData") as? Data
+        self.images360 = nil
+        self.videoURL = nil
     }
     
-    // Mevcut init'i koruyalım
-    init(id: String, name: String, description: String, price: Double, 
-         imageName: String, category: ProductCategory, 
-         nicotineStrength: String, quantity: Int, imageData: Data? = nil) {
+    // Normal init
+    init(id: String, name: String, description: String, price: Double, imageName: String, category: ProductCategory, nicotineStrength: String, quantity: Int, imageData: Data?) {
         self.id = id
         self.name = name
         self.description = description
@@ -37,6 +40,17 @@ struct Product: Identifiable {
         self.nicotineStrength = nicotineStrength
         self.quantity = quantity
         self.imageData = imageData
+        self.images360 = nil
+        self.videoURL = nil
+    }
+    
+    // Hashable için gerekli fonksiyonlar
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: Product, rhs: Product) -> Bool {
+        lhs.id == rhs.id
     }
 }
 

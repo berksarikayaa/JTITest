@@ -3,94 +3,41 @@ import SwiftUI
 struct MainView: View {
     @StateObject private var cartManager = CartManager.shared
     @StateObject private var localizationManager = LocalizationManager.shared
-    @State private var showMenu = false
     @State private var selectedTab = 0
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
-        NavigationView {
-            ZStack(alignment: .leading) {
-                Color(colorScheme == .dark ? .black : .white)
-                    .ignoresSafeArea()
-                
-                // Ana içerik
-                Group {
-                    switch selectedTab {
-                    case 0:
-                        HomeView()
-                    case 1:
-                        ProfileView()
-                    case 2:
-                        ProductListView()
-                    case 3:
-                        CartView()
-                    default:
-                        HomeView()
-                    }
+        TabView(selection: $selectedTab) {
+            HomeView()
+                .tabItem {
+                    Image(systemName: "house.fill")
+                    Text(localizationManager.strings.home)
                 }
-                .navigationTitle(showMenu ? "" : getTitle())
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        if !showMenu {
-                            Button {
-                                withAnimation(.spring()) {
-                                    showMenu.toggle()
-                                }
-                            } label: {
-                                Image(systemName: "line.horizontal.3")
-                                    .font(.title3)
-                                    .foregroundColor(.primary)
-                            }
-                        }
-                    }
-                    
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        CartButton()
-                    }
+                .tag(0)
+            
+            ProductListView()
+                .tabItem {
+                    Image(systemName: "bag.fill")
+                    Text(localizationManager.strings.products)
                 }
-                .offset(x: showMenu ? UIScreen.main.bounds.width * 0.6 : 0)
-                .disabled(showMenu)
-                
-                // Karartma efekti
-                if showMenu {
-                    Color.black.opacity(0.3)
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            withAnimation(.spring()) {
-                                showMenu = false
-                            }
-                        }
-                        .transition(.opacity)
+                .tag(1)
+            
+            ProfileView()
+                .tabItem {
+                    Image(systemName: "person.fill")
+                    Text(localizationManager.strings.profile)
                 }
-                
-                // Hamburger Menü
-                if showMenu {
-                    MenuContent(showMenu: $showMenu, selectedTab: $selectedTab)
-                        .frame(width: UIScreen.main.bounds.width * 0.6)
-                        .transition(.move(edge: .leading))
-                        .zIndex(2)
+                .tag(2)
+            
+            SettingsView()
+                .tabItem {
+                    Image(systemName: "gear")
+                    Text("Ayarlar")
                 }
-            }
-            .background(Color(colorScheme == .dark ? .black : .white))
+                .tag(3)
         }
         .environmentObject(cartManager)
         .environmentObject(localizationManager)
-    }
-    
-    private func getTitle() -> String {
-        switch selectedTab {
-        case 0:
-            return localizationManager.strings.home
-        case 1:
-            return localizationManager.strings.profile
-        case 2:
-            return localizationManager.strings.products
-        case 3:
-            return localizationManager.strings.cart
-        default:
-            return localizationManager.strings.home
-        }
     }
 }
 
@@ -237,29 +184,5 @@ struct MenuRow: View {
             Spacer()
         }
         .contentShape(Rectangle())
-    }
-}
-
-struct CartButton: View {
-    @ObservedObject private var cartManager = CartManager.shared
-    
-    var body: some View {
-        NavigationLink(destination: CartView()) {
-            ZStack(alignment: .topTrailing) {
-                Image(systemName: "cart")
-                    .font(.title3)
-                    .foregroundColor(.primary)
-                
-                if cartManager.itemCount > 0 {
-                    Text("\(cartManager.itemCount)")
-                        .font(.caption2.bold())
-                        .foregroundColor(.white)
-                        .padding(5)
-                        .background(Color.red)
-                        .clipShape(Circle())
-                        .offset(x: 10, y: -10)
-                }
-            }
-        }
     }
 } 
