@@ -1,36 +1,49 @@
 import Foundation
 import SwiftUI
+import os
 
-class ProductDetailViewModel: ObservableObject {
+/// Ürün detay ekranının view model'i
+final class ProductDetailViewModel: ObservableObject {
+    @Published private(set) var reviews: [ProductReview] = []
+    @Published private(set) var similarProducts: [Product] = []
     @Published var quantity = 1
-    @Published var isFavorite = false
     @Published var selectedVariant: ProductVariant = .original
-    @Published var reviews: [ProductReview] = []
     @Published var showReviewSheet = false
-    @Published var similarProducts: [Product] = []
-    private let cartManager = CartManager.shared
     
-    init() {
+    private let cartManager: CartManager
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "ProductDetail")
+    private let coreDataManager: CoreDataManager
+    
+    init(cartManager: CartManager = .shared, coreDataManager: CoreDataManager = .shared) {
+        self.cartManager = cartManager
+        self.coreDataManager = coreDataManager
         loadSimilarProducts()
         loadReviews()
     }
     
+    /// Ürünü sepete ekler
+    /// - Parameter product: Eklenecek ürün
     func addToCart(_ product: Product) {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            cartManager.addToCart(product, quantity: quantity)
-        }
+        cartManager.addToCart(product, quantity: quantity)
         
         // Haptic feedback
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
     }
     
-    func toggleFavorite(for product: inout Product) {
-        product.isFavorite.toggle()
-        isFavorite = product.isFavorite
-        // Haptic feedback
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
+    /// Favorileri günceller
+    /// - Parameter productId: Güncellenecek ürünün ID'si
+    /// - Parameter completion: Güncellenmiş favori durumunu alacak closure
+    func toggleFavorite(for productId: String, completion: @escaping (Bool) -> Void) {
+        coreDataManager.toggleFavorite(for: productId) { updatedIsFavorite in
+            DispatchQueue.main.async {
+                completion(updatedIsFavorite)
+                
+                // Haptic feedback
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+            }
+        }
     }
     
     private func loadSimilarProducts() {

@@ -4,44 +4,50 @@ struct MainView: View {
     @StateObject private var cartManager = CartManager.shared
     @StateObject private var localizationManager = LocalizationManager.shared
     @State private var selectedTab = 0
-    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            HomeView()
-                .tabItem {
-                    Image(systemName: "house.fill")
-                    Text(localizationManager.strings.home)
+        NavigationView {
+            TabView(selection: $selectedTab) {
+                HomeView()
+                    .tabItem {
+                        Image(systemName: "house.fill")
+                        Text(localizationManager.strings.home)
+                    }
+                    .tag(0)
+                
+                ProductListView()
+                    .tabItem {
+                        Image(systemName: "bag.fill")
+                        Text(localizationManager.strings.products)
+                    }
+                    .tag(1)
+                
+                FavoritesView()
+                    .tabItem {
+                        Image(systemName: "star.fill")
+                        Text("Favoriler")
+                    }
+                    .tag(2)
+                
+                ProfileView()
+                    .tabItem {
+                        Image(systemName: "person.fill")
+                        Text(localizationManager.strings.profile)
+                    }
+                    .tag(3)
+                
+                SettingsView()
+                    .tabItem {
+                        Image(systemName: "gear")
+                        Text("Ayarlar")
+                    }
+                    .tag(4)
+            }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    CartButton()
                 }
-                .tag(0)
-            
-            ProductListView()
-                .tabItem {
-                    Image(systemName: "bag.fill")
-                    Text(localizationManager.strings.products)
-                }
-                .tag(1)
-            
-            FavoritesView()
-                .tabItem {
-                    Image(systemName: "star.fill")
-                    Text("Favoriler")
-                }
-                .tag(2)
-            
-            ProfileView()
-                .tabItem {
-                    Image(systemName: "person.fill")
-                    Text(localizationManager.strings.profile)
-                }
-                .tag(3)
-            
-            SettingsView()
-                .tabItem {
-                    Image(systemName: "gear")
-                    Text("Ayarlar")
-                }
-                .tag(4)
+            }
         }
         .environmentObject(cartManager)
         .environmentObject(localizationManager)

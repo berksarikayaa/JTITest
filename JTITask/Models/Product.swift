@@ -1,6 +1,8 @@
 import CoreData
 import UIKit // UIImage için eklendi
 
+/// Ürün modelini temsil eden struct
+/// - Note: Hashable ve Identifiable protokollerini implement eder
 struct Product: Identifiable, Hashable {
     let id: String
     let name: String
@@ -11,11 +13,14 @@ struct Product: Identifiable, Hashable {
     let nicotineStrength: String
     let quantity: Int
     let imageData: Data?
-    var images360: [UIImage]? // 360 derece görüntüler için eklendi
-    var videoURL: URL? // Video URL'i için eklendi
-    var isFavorite: Bool = false // Favori özelliği eklendi
+    let images360: [UIImage]?
+    let videoURL: URL?
+    var isFavorite: Bool
     
-    // Core Data'dan ürün oluştururken kullanılacak init
+    // MARK: - Initializers
+    
+    /// Core Data'dan ürün oluşturur
+    /// - Parameter managedObject: NSManagedObject
     init(managedObject: NSManagedObject) {
         self.id = managedObject.value(forKey: "id") as? String ?? UUID().uuidString
         self.name = managedObject.value(forKey: "name") as? String ?? ""
@@ -28,10 +33,22 @@ struct Product: Identifiable, Hashable {
         self.imageData = managedObject.value(forKey: "imageData") as? Data
         self.images360 = nil
         self.videoURL = nil
+        self.isFavorite = managedObject.value(forKey: "isFavorite") as? Bool ?? false
     }
     
-    // Normal init
-    init(id: String, name: String, description: String, price: Double, imageName: String, category: ProductCategory, nicotineStrength: String, quantity: Int, imageData: Data?) {
+    /// Yeni ürün oluşturur
+    init(id: String = UUID().uuidString,
+         name: String,
+         description: String,
+         price: Double,
+         imageName: String,
+         category: ProductCategory,
+         nicotineStrength: String,
+         quantity: Int,
+         imageData: Data?,
+         images360: [UIImage]? = nil,
+         videoURL: URL? = nil,
+         isFavorite: Bool = false) {
         self.id = id
         self.name = name
         self.description = description
@@ -41,11 +58,13 @@ struct Product: Identifiable, Hashable {
         self.nicotineStrength = nicotineStrength
         self.quantity = quantity
         self.imageData = imageData
-        self.images360 = nil
-        self.videoURL = nil
+        self.images360 = images360
+        self.videoURL = videoURL
+        self.isFavorite = isFavorite
     }
     
-    // Hashable için gerekli fonksiyonlar
+    // MARK: - Hashable
+    
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }

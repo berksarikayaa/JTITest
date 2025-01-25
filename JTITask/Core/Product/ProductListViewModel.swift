@@ -2,57 +2,62 @@ import Foundation
 import CoreData
 import SwiftUI
 
-class ProductListViewModel: ObservableObject {
-    @Published var products: [NSManagedObject] = []
-    @Published var filteredProducts: [NSManagedObject] = []
+final class ProductListViewModel: ObservableObject {
+    @Published var products: [Product] = []
+    @Published var filteredProducts: [Product] = []
     @Published var isLoading = false
-    @Published var selectedCategory: ProductCategory? = nil
+    @Published var selectedCategory: ProductCategory?
     @Published var searchText: String = ""
     
-    private let coreDataManager = CoreDataManager.shared
+    private let coreDataManager: CoreDataManager
     
-    init() {
-        fetchProducts()
+    init(coreDataManager: CoreDataManager = .shared) {
+        self.coreDataManager = coreDataManager
+        loadProducts()
+        
+        // Favori değişikliklerini dinle
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleProductUpdate),
+            name: CoreDataManager.didSaveProductNotification,
+            object: nil
+        )
     }
     
-    func fetchProducts(category: ProductCategory? = nil) {
-        isLoading = true
-        products = coreDataManager.getAllProducts()
+    @objc func handleProductUpdate() {
+        loadProducts()
+    }
+    
+    private func loadProducts() {
+        let managedObjects = coreDataManager.getAllProducts()
+        products = managedObjects.compactMap { Product(managedObject: $0) }
         filterProducts()
-        isLoading = false
     }
     
-    func filterProducts(by category: ProductCategory? = nil) {
-        selectedCategory = category
+    func searchProducts(query: String) {
+        searchText = query
         filterProducts()
     }
     
     private func filterProducts() {
         if searchText.isEmpty {
             filteredProducts = selectedCategory == nil ? products : products.filter {
-                $0.value(forKey: "category") as? String == selectedCategory?.rawValue
+                $0.category == selectedCategory
             }
         } else {
-            let filtered = products.filter { product in
-                let name = product.value(forKey: "name") as? String ?? ""
-                let description = product.value(forKey: "desc") as? String ?? ""
-                let category = product.value(forKey: "category") as? String
+            filteredProducts = products.filter { product in
+                let name = product.name.lowercased()
+                let description = product.description.lowercased()
                 
-                return (name.lowercased().contains(searchText.lowercased()) ||
-                       description.lowercased().contains(searchText.lowercased())) &&
-                       (selectedCategory == nil || category == selectedCategory?.rawValue)
+                return (name.contains(searchText.lowercased()) ||
+                       description.contains(searchText.lowercased())) &&
+                       (selectedCategory == nil || product.category == selectedCategory)
             }
-            filteredProducts = filtered
         }
     }
     
-    func searchProducts(query: String) {
-        // Arama mantığını burada uygulayın
-        // Örneğin, Core Data'dan ürünleri filtreleyebilirsiniz
-    }
-    
-    func filterProducts(by category: ProductCategory) {
+    func filterProducts(by category: ProductCategory?) {
         selectedCategory = category
-        // Kategoriye göre filtreleme mantığını burada uygulayın
+        filterProducts()
     }
 } 

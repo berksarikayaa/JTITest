@@ -1,27 +1,48 @@
 import SwiftUI
 import PhotosUI
 import CoreData
+import os
 
-class AdminPanelViewModel: ObservableObject {
+final class AdminPanelViewModel: ObservableObject {
     @Published var productName = ""
     @Published var productDescription = ""
     @Published var price = ""
     @Published var nicotineStrength = ""
     @Published var quantity = ""
     @Published var selectedCategory: ProductCategory = .original
-    @Published var selectedItem: PhotosPickerItem?
     @Published var selectedImage: Image?
+    @Published var selectedUIImage: UIImage? {
+        didSet {
+            if let image = selectedUIImage {
+                selectedImage = Image(uiImage: image)
+                selectedImageData = image.jpegData(compressionQuality: 0.8)
+            }
+        }
+    }
     @Published var selectedImageData: Data?
     @Published var showSuccessAlert = false
     @Published var showError = false
     @Published var errorMessage = ""
     
-    private let coreDataManager = CoreDataManager.shared
+    private let coreDataManager: CoreDataManager
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "AdminPanel")
     private var editingProduct: NSManagedObject?
     
     var isEditing: Bool { editingProduct != nil }
     
-    init(editingProduct: NSManagedObject? = nil) {
+    var isFormValid: Bool {
+        !productName.isEmpty &&
+        !productDescription.isEmpty &&
+        !price.isEmpty &&
+        !nicotineStrength.isEmpty &&
+        !quantity.isEmpty &&
+        selectedImageData != nil &&
+        Double(price) != nil &&
+        Int(quantity) != nil
+    }
+    
+    init(coreDataManager: CoreDataManager = .shared, editingProduct: NSManagedObject? = nil) {
+        self.coreDataManager = coreDataManager
         self.editingProduct = editingProduct
         
         if let product = editingProduct {
@@ -46,41 +67,7 @@ class AdminPanelViewModel: ObservableObject {
         if let imageData = product.value(forKey: "imageData") as? Data,
            let uiImage = UIImage(data: imageData) {
             selectedImageData = imageData
-            selectedImage = Image(uiImage: uiImage)
-        }
-    }
-    
-    var isFormValid: Bool {
-        !productName.isEmpty &&
-        !productDescription.isEmpty &&
-        !price.isEmpty &&
-        !nicotineStrength.isEmpty &&
-        !quantity.isEmpty &&
-        selectedImageData != nil &&
-        Double(price) != nil &&
-        Int(quantity) != nil
-    }
-    
-    func loadImage() {
-        guard let item = selectedItem else { return }
-        
-        Task {
-            do {
-                guard let data = try await item.loadTransferable(type: Data.self) else { return }
-                
-                if let uiImage = UIImage(data: data) {
-                    await MainActor.run {
-                        self.selectedImageData = data
-                        self.selectedImage = Image(uiImage: uiImage)
-                    }
-                }
-            } catch {
-                await MainActor.run {
-                    self.showError = true
-                    self.errorMessage = "Görsel yüklenirken hata oluştu"
-                }
-                print("Görsel yüklenirken hata: \(error.localizedDescription)")
-            }
+            selectedUIImage = uiImage
         }
     }
     
@@ -138,8 +125,8 @@ class AdminPanelViewModel: ObservableObject {
         nicotineStrength = ""
         quantity = ""
         selectedCategory = .original
-        selectedItem = nil
         selectedImage = nil
+        selectedUIImage = nil
         selectedImageData = nil
     }
 } 

@@ -7,10 +7,15 @@ struct JTITaskApp: App {
     @StateObject private var cartManager = CartManager()
     @StateObject private var localizationManager = LocalizationManager()
     
+    init() {
+        // Örnek ürünleri ekle
+        persistenceController.seedProducts()
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .environment(\.managedObjectContext, persistenceController.viewContext)
                 .environmentObject(cartManager)
                 .environmentObject(localizationManager)
         }

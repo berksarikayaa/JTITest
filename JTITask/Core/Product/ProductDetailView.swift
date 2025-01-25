@@ -83,7 +83,11 @@ struct ProductDetailView: View {
                             Spacer()
                             
                             Button {
-                                viewModel.toggleFavorite(for: &product)
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                    viewModel.toggleFavorite(for: product.id) { updatedIsFavorite in
+                                        product.isFavorite = updatedIsFavorite
+                                    }
+                                }
                             } label: {
                                 Image(systemName: product.isFavorite ? "heart.fill" : "heart")
                                     .font(.title2)

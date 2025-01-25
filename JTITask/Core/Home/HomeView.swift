@@ -6,6 +6,8 @@ struct HomeView: View {
     @State private var searchText = ""
     @Environment(\.colorScheme) var colorScheme
     @State private var offset: CGFloat = 0
+    @State private var selectedTab = 0
+    @State private var currentIndex = 0
     
     // Gradient renklerini güncelleyelim
     private let gradientColors: [Color] = [
@@ -40,11 +42,16 @@ struct HomeView: View {
                     forName: CoreDataManager.didSaveProductNotification,
                     object: nil,
                     queue: .main) { _ in
-                        viewModel.refreshProducts()
+                        viewModel.handleProductUpdate()
                     }
             }
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { offset in
                 self.offset = offset
+            }
+            .onChange(of: selectedTab) { _, newValue in
+                withAnimation {
+                    currentIndex = newValue
+                }
             }
         }
     }
@@ -70,7 +77,7 @@ struct HomeView: View {
     // Arama bölümü
     private var searchSection: some View {
         SearchBar(text: $searchText)
-            .onChange(of: searchText) { newValue in
+            .onChange(of: searchText) { _, newValue in
                 viewModel.searchProducts(query: newValue)
             }
             .padding(.vertical, 4)
@@ -79,15 +86,13 @@ struct HomeView: View {
     // Ürün grid bölümü
     private var productGridSection: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 2), spacing: 16) {
-            ForEach(viewModel.filteredProducts, id: \.self) { managedProduct in
-                if let product = createProduct(from: managedProduct) {
-                    NavigationLink {
-                        ProductDetailView(product: product)
-                    } label: {
-                        ProductCard(product: product)
-                    }
-                    .buttonStyle(PlainButtonStyle())
+            ForEach(viewModel.filteredProducts) { product in
+                NavigationLink {
+                    ProductDetailView(product: product)
+                } label: {
+                    ProductCard(product: product)
                 }
+                .buttonStyle(PlainButtonStyle())
             }
         }
         .padding(.horizontal)

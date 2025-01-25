@@ -4,43 +4,38 @@ import CoreData
 struct ProductListView: View {
     @StateObject private var viewModel = ProductListViewModel()
     @EnvironmentObject private var localizationManager: LocalizationManager
-    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                AnimatedBackground()
+        ZStack {
+            AnimatedBackground()
+            
+            ScrollView {
+                // Arama çubuğu
+                SearchBar(text: $viewModel.searchText)
+                    .onChange(of: viewModel.searchText) { _, newValue in
+                        viewModel.searchProducts(query: newValue)
+                    }
                 
-                ScrollView {
-                    // Arama çubuğu
-                    SearchBar(text: $viewModel.searchText)
-                        .onChange(of: viewModel.searchText) { newValue in
-                            viewModel.searchProducts(query: newValue)
-                        }
-                    
-                    // Kategori filtreleme
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        categoryFilterView
-                    }
-                    
-                    // Ürün listesi
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 2), spacing: 16) {
-                        ForEach(viewModel.filteredProducts, id: \.self) { managedProduct in
-                            if let product = createProduct(from: managedProduct) {
-                                NavigationLink {
-                                    ProductDetailView(product: product)
-                                } label: {
-                                    ProductCard(product: product)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
+                // Kategori filtreleme
+                ScrollView(.horizontal, showsIndicators: false) {
+                    categoryFilterView
                 }
-                .navigationTitle(localizationManager.strings.products)
+                
+                // Ürün listesi
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 2), spacing: 16) {
+                    ForEach(viewModel.filteredProducts) { product in
+                        NavigationLink {
+                            ProductDetailView(product: product)
+                        } label: {
+                            ProductCard(product: product)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                .padding(.horizontal)
             }
         }
+        .navigationTitle(localizationManager.strings.products)
     }
     
     private var categoryFilterView: some View {
@@ -58,7 +53,8 @@ struct ProductListView: View {
     
     // Helper fonksiyon: NSManagedObject'ten Product oluşturma
     private func createProduct(from managedProduct: NSManagedObject) -> Product? {
-        guard let name = managedProduct.value(forKey: "name") as? String,
+        guard let id = managedProduct.value(forKey: "id") as? String,
+              let name = managedProduct.value(forKey: "name") as? String,
               let desc = managedProduct.value(forKey: "desc") as? String,
               let price = managedProduct.value(forKey: "price") as? Double,
               let nicotineStrength = managedProduct.value(forKey: "nicotineStrength") as? String,
@@ -69,8 +65,10 @@ struct ProductListView: View {
             return nil
         }
         
+        let isFavorite = managedProduct.value(forKey: "isFavorite") as? Bool ?? false
+        
         return Product(
-            id: managedProduct.value(forKey: "id") as? String ?? UUID().uuidString,
+            id: id,
             name: name,
             description: desc,
             price: price,
@@ -78,7 +76,8 @@ struct ProductListView: View {
             category: categoryEnum,
             nicotineStrength: nicotineStrength,
             quantity: Int(quantity),
-            imageData: imageData
+            imageData: imageData,
+            isFavorite: isFavorite
         )
     }
 }
